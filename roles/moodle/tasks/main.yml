@@ -37,16 +37,36 @@
     path: "{{ moodle_base }}/config-dist.php"
   register: moodle
 
-- name: Download the latest Moodle repo
+- name: Download latest repo MOODLE_{{ moodle_version }}_STABLE
   git:
     repo: "{{ moodle_repo_url }}"
     dest: "{{ moodle_base }}"
     depth: 1
     force: yes
-    #version: "MOODLE_{{ moodle_version }}_STABLE"
+    version: "MOODLE_{{ moodle_version }}_STABLE"
+  ignore_errors: yes
+  when: internet_available and moodle.stat.exists is defined and not moodle.stat.exists
+  register: moodle_download
+
+#- debug:
+#    var: moodle_download
+#    #verbosity: 2
+
+- name: Remove /opt/iiab/moodle (if above failed)
+  file:
+    path: "{{ moodle_base }}"
+    state: absent
+  when: moodle_download.failed
+
+- name: Download Moodle repo master branch (if above failed)
+  git:
+    repo: "{{ moodle_repo_url }}"
+    dest: "{{ moodle_base }}"
+    depth: 1
+    force: yes
     version: master   # TEMPORARY DURING MAY 2018 TESTING
   #ignore_errors: yes
-  when: internet_available and moodle.stat.exists is defined and not moodle.stat.exists
+  when: moodle_download.failed
 
 - name: Prepare the downloaded directory so Apache can install config file
   file:
