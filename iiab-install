@@ -159,4 +159,8 @@ export ANSIBLE_LOG_PATH="$CWD/iiab-install.log"
 ansible -m setup -i $INVENTORY localhost --connection=local >> /dev/null
 ansible-playbook -i $INVENTORY $PLAYBOOK ${ARGS} --connection=local
 
+echo -e "\n   █████████████████████████████████████████████████████████████████████████"
+echo -e "   ██     TRY TO RERUN THE ABOVE IF IT FAILS DUE TO CONNECTIVITY ETC      ██"
+echo -e "   █████████████████████████████████████████████████████████████████████████\n\n"
+
 echo -e "./iiab-install $* COMPLETED IN $CWD\n\n"
