@@ -11,7 +11,7 @@ Connecting to the Server
 
 To connect to the server, you will also need to download Minetest client software for each of your client devices, e.g. from:
 
-  https://www.minetest.net/downloads/
+https://www.minetest.net/downloads/
 
 The port is nominally the standard 30000.  This can be changed in `/etc/iiab/local_vars.yml <http://wiki.laptop.org/go/IIAB/FAQ#What_is_local_vars.yml_and_how_do_I_customize_it.3F>`_ using variable: ``minetest_port``
 
