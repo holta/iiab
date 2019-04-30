@@ -2,7 +2,9 @@
   package:
     name:
       - imagemagick
-      - python-pil    # Fixes #1624 failure during Calibre-Web pip install
+      # Failed attempts to fixes #1624 (failure to pip install Calibre-Web)
+      #- python-pil
+      #- python-imaging
     state: present
   when: is_debuntu
 
