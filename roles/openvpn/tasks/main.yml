@@ -73,7 +73,7 @@
     - { src: 'silence', dest: '/etc/openvpn/scripts/silence', mode: '0755' }
     - { src: 'xscenet.conf.j2', dest: '/etc/openvpn/xscenet.conf', mode: '0644' }
     - { src: 'openvpn_handle.j2', dest: '/etc/iiab/openvpn_handle', mode: '0644' }
-    - { src: 'iiab-support', dest: '/usr/bin/iiab-support', mode: '0755' }
+    #- { src: 'iiab-support', dest: '/usr/bin/iiab-support', mode: '0755' }    # 2019-05-12: Moved to /opt/iiab/iiab/iiab-support; with symlink /usr/bin/iiab-support
     - { src: 'iiab-remote-on.j2', dest: '/usr/bin/iiab-remote-on', mode: '0755' }
     - { src: 'iiab-remote-off', dest: '/usr/bin/iiab-remote-off', mode: '0755' }
     # Comment out in future?  Not recommended as of August 2018:
@@ -86,6 +86,12 @@
     #- { src: 'iiab-vpn.conf.in', dest: '/etc/openvpn/iiab-vpn.conf.in', mode: '0644' }
     # Obsolete & unused for ~2 years as of August 2018:
     #- { src: 'iiab-vpn.j2', dest: '/usr/bin/iiab-vpn', mode: '0755' }
+
+- name: Create /usr/bin/iiab-support (symlink to /opt/iiab/iiab/iiab-support for now)
+  file:
+    src: "{{ iiab_dir }}/iiab-support"
+    path: /usr/bin/iiab-support
+    state: link
 
 - name: Create iiab-support-on (symlink to iiab-support for now)
   file:
