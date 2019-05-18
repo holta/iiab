@@ -34,7 +34,9 @@ $IPTABLES -A INPUT -p tcp --dport 5984 -j DROP
 $IPTABLES -A INPUT -p udp --dport 5984 -j DROP
 }
 
-if [  "x$WANIF" == "xnone" ] || [ "$MODE" == "Appliance" ]; then
+iptables_only_protect_dbs={{ iptables_only_protect_dbs }}
+
+if [ "x$WANIF" == "xnone" ] || [ "$MODE" == "Appliance" ] || [ "$iptables_only_protect_dbs" == "True" ]; then
     clear_fw
     # save the rule set
 	{% if is_debuntu %}
@@ -70,7 +72,7 @@ pbx_signaling_ports_chan_sip={{ pbx_signaling_ports_chan_sip }}
 pbx_signaling_ports_chan_pjsip={{ pbx_signaling_ports_chan_pjsip }}
 pbx_data_ports={{ pbx_data_ports }}
 pbx_enabled={{ pbx_enabled }}
-samba_enabled={{ samba_enabled }}
+samba_externally_visible={{ samba_externally_visible }}
 samba_udp_ports={{ samba_udp_ports }}
 samba_tcp_mports={{ samba_tcp_mports }}
 
@@ -120,11 +122,11 @@ if [ "$services_externally_visible" == "True" ]; then
         $IPTABLES -A INPUT -p udp --dport $pbx_signaling_ports_chan_pjsip -m state --state NEW -i $wan -j ACCEPT
         $IPTABLES -A INPUT -p udp --dport $pbx_data_ports -m state --state NEW -i $wan -j ACCEPT
     fi
+fi
 
-    if [ "$samba_enabled" == "True" ]; then
-        $IPTABLES -A INPUT -p udp --dport $samba_udp_ports -m state --state NEW -i $wan -j ACCEPT
-        $IPTABLES -A INPUT -p tcp -m multiport --dports $samba_tcp_mports -m state --state NEW -i $wan -j ACCEPT
-    fi
+if [ "$samba_externally_visible" == "True" ]; then
+    $IPTABLES -A INPUT -p udp --dport $samba_udp_ports -m state --state NEW -i $wan -j ACCEPT
+    $IPTABLES -A INPUT -p tcp -m multiport --dports $samba_tcp_mports -m state --state NEW -i $wan -j ACCEPT
 fi
 
 if [ "$iiab_gateway_enabled" == "True" ]; then
