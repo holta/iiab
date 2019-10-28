@@ -39,7 +39,6 @@
 #- debug:
 #    var: php_new
 
-
 - name: Download {{ nextcloud_dl_url }}/{{ nextcloud_orig_src_file_old }} to {{ downloads_dir }}/{{ nextcloud_src_file_old }} on older OS's lacking PHP 7.1+
   get_url:
     url: "{{ nextcloud_dl_url }}/{{ nextcloud_orig_src_file_old }}"
@@ -174,15 +173,7 @@
     mode: 0750
     state: directory
 
-- name: Install Apache's nextcloud.conf from template, for http://box/nextcloud
-  template:
-    src: nextcloud.conf.j2
-    dest: "/etc/{{ apache_config_dir }}/nextcloud.conf"
-    owner: root
-    group: root
-    mode: 0644
-
-- name: Add 'nextcloud_installed' variable values to {{ iiab_state_file }}
+ name: Add 'nextcloud_installed' variable values to {{ iiab_state_file }}
   lineinfile:
     dest: "{{ iiab_state_file }}"
     regexp: '^nextcloud_installed'

@@ -4,6 +4,14 @@
 #    nextcloud_required_ip: "{{ ansible_default_ipv4.network }}/{{ ansible_default_ipv4.netmask }}"
 #  when: ansible_default_ipv4.network is defined
 
+- name: Install Apache's nextcloud.conf from template, for http://box/nextcloud
+  template:
+    src: nextcloud.conf.j2
+    dest: "/etc/{{ apache_config_dir }}/nextcloud.conf"
+    owner: root
+    group: root
+    mode: 0644
+
 - name: Create symlink nextcloud.conf from sites-enabled to sites-available for http://box/nextcloud (debuntu)
   file:
     src: "/etc/{{ apache_config_dir }}/nextcloud.conf"
