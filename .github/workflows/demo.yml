@@ -22,7 +22,6 @@ jobs:
           whoami                           ####
           pwd                              ####
           echo $GITHUB_WORKSPACE           ####
-          #echo ${{ GITHUB_WORKSPACE }}    ####
           ls -la $GITHUB_WORKSPACE         ####
           ls -la /opt || true              ####
           ls -la /opt/iiab || true         ####
