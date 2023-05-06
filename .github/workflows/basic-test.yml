@@ -47,7 +47,7 @@ jobs:
           # touch /etc/iiab/local_vars.yml
           sudo cp /opt/iiab/iiab/vars/local_vars_none.yml /etc/iiab/local_vars.yml
       - run: sudo /opt/iiab/iiab/scripts/ansible
-      - run: ./iiab-install
+      - run: sudo ./iiab-install
         working-directory: /opt/iiab/iiab
       - run: iiab-summary
       - run: cat /etc/iiab/iiab_state.yml
