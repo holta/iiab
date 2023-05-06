@@ -43,7 +43,7 @@ jobs:
           mkdir $GITHUB_WORKSPACE    # OR SUBSEQUENT STEPS WILL FAIL ('working-directory: /opt/iiab/iiab' hacks NOT worth it!)
       - name: Set up /etc/iiab/local_vars.yml
         run: |
-          mkdir /etc/iiab
+          sudo mkdir /etc/iiab
           # touch /etc/iiab/local_vars.yml
           cp /opt/iiab/iiab/vars/local_vars_none.yml /etc/iiab/local_vars.yml
       - run: /opt/iiab/iiab/scripts/ansible
