@@ -1,8 +1,8 @@
-name: GitHub Actions Demo
-run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+name: Test SMALL-sized IIAB install
+# run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
 on: [push]
 jobs:
-  Explore-GitHub-Actions:
+  test-install:
     runs-on: ubuntu-latest
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
@@ -17,6 +17,7 @@ jobs:
           ls ${{ github.workspace }}
       - run: echo "🍏 This job's status is ${{ job.status }}."
       - run: |
+          # sudo apt update
           # sudo apt dist-upgrade -y
           # sudo apt autoremove -y
           whoami                           ####
@@ -26,7 +27,6 @@ jobs:
           ls -la /opt || true              ####
           ls -la /opt/iiab || true         ####
           ls -la /opt/iiab/iiab || true    ####
-          sudo apt update                  ####
           sudo mkdir /opt/iiab
           sudo mv $GITHUB_WORKSPACE /opt/iiab
           cd /opt/iiab/iiab
@@ -34,6 +34,7 @@ jobs:
           sudo mkdir /etc/iiab
           # touch /etc/iiab/local_vars.yml
           sudo cp vars/local_vars_small.yml /etc/iiab/local_vars.yml
+          sudo scripts/ansible
           sudo ./iiab-install
       - name: Another command
         run: ls -l
