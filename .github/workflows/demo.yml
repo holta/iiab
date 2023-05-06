@@ -1,4 +1,4 @@
-name: Test SMALL-sized IIAB install
+name: Test IIAB install
 # run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
 on: [push]
 jobs:
@@ -8,8 +8,11 @@ jobs:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
       - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - run: sudo mkdir -p /opt/iiab/iiab
       - name: Check out repository code
         uses: actions/checkout@v3
+        with:
+          path: /opt/iiab/iiab
       - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
       - run: echo "🖥️ The workflow is now ready to test your code on the runner."
       - name: List files in the repository
@@ -20,21 +23,21 @@ jobs:
           # sudo apt update
           # sudo apt dist-upgrade -y
           # sudo apt autoremove -y
-          whoami                           ####
-          pwd                              ####
-          echo $GITHUB_WORKSPACE           ####
-          ls -la $GITHUB_WORKSPACE         ####
-          ls -la /opt || true              ####
-          ls -la /opt/iiab || true         ####
-          ls -la /opt/iiab/iiab || true    ####
-          sudo mkdir /opt/iiab
-          sudo mv $GITHUB_WORKSPACE /opt/iiab
+          whoami                             ####
+          pwd                                ####
+          echo $GITHUB_WORKSPACE             ####
+          ls -la $GITHUB_WORKSPACE           ####
+          ls -la /opt                        ####
+          # ls -la /opt/iiab || true         ####
+          # ls -la /opt/iiab/iiab || true    ####
+          ##sudo mkdir /opt/iiab
+          ##sudo mv $GITHUB_WORKSPACE /opt/iiab
           cd /opt/iiab/iiab
-          ls -la                           ####
+          ls -la                             ####
           sudo mkdir /etc/iiab
           # touch /etc/iiab/local_vars.yml
-          sudo cp vars/local_vars_small.yml /etc/iiab/local_vars.yml
+          sudo cp vars/local_vars_none.yml /etc/iiab/local_vars.yml
           sudo scripts/ansible
           sudo ./iiab-install
-      - name: Another command
-        run: ls -l
+      - name: tail iiab-install.log
+        run: tail /opt/iiab/iiab/iiab-install.log || true
