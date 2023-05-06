@@ -31,8 +31,10 @@ jobs:
         run: |
           sudo mkdir /opt/iiab
           sudo mv $GITHUB_WORKSPACE /opt/iiab
+      - run: pwd
       - name: Set up /etc/iiab/local_vars.yml
         run: |
+          pwd
           cd /opt/iiab/iiab
           sudo mkdir /etc/iiab
           # touch /etc/iiab/local_vars.yml
