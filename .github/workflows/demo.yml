@@ -8,6 +8,7 @@ jobs:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       #- run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
       - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - run: export GITHUB_WORKSPACE=/opt/iiab/iiab
       - name: Check out repository code
         uses: actions/checkout@v3
       #- run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
@@ -23,26 +24,27 @@ jobs:
           # sudo apt autoremove -y
           whoami    # runner
           pwd       # /home/runner/work/iiab/iiab == $GITHUB_WORKSPACE == ${{ github.workspace }}
-          # ls
+          ls    ####
           # ls $GITHUB_WORKSPACE
           # ls ${{ github.workspace }}
           ls -la /opt    # az, containerd, google, hostedtoolcache, microsoft, mssql-tools, pipx, pipx_bin, post-generation, runner, vsts
       - name: Set up /opt/iiab/iiab
         run: |
-          sudo mkdir /opt/iiab
-          sudo mv $GITHUB_WORKSPACE /opt/iiab
-          cd /opt/iiab/iiab
-      - run: pwd
+          mkdir /opt/iiab
+          mv $GITHUB_WORKSPACE /opt/iiab
       - name: Set up /etc/iiab/local_vars.yml
         run: |
-          pwd
-          cd /opt/iiab/iiab    ####
+          cd /opt/iiab/iiab
           sudo mkdir /etc/iiab
           # touch /etc/iiab/local_vars.yml
           sudo cp vars/local_vars_none.yml /etc/iiab/local_vars.yml
       - name: Run scripts/ansible
-        run: pwd && sudo scripts/ansible
+        run: |
+          cd /opt/iiab/iiab
+          sudo scripts/ansible
       - name: Run ./iiab-ansible
-        run: pwd && sudo ./iiab-install
+        run: |
+          cd /opt/iiab/iiab
+          sudo ./iiab-install
       - name: cat /etc/iiab/iiab_state.yml
         run: cat /etc/iiab/iiab_state.yml
