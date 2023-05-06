@@ -19,18 +19,22 @@ jobs:
       - run: |
           # sudo apt dist-upgrade -y
           # sudo apt autoremove -y
-          whoami                      ####
-          pwd                         ####
-          ls -la $GITHUB_WORKSPACE    ####
-          ls -la /opt/iiab/iiab       ####
-          sudo apt update             ####
+          whoami                           ####
+          pwd                              ####
+          echo $GITHUB_WORKSPACE           ####
+          echo ${{ GITHUB_WORKSPACE }}     ####
+          ls -la $GITHUB_WORKSPACE         ####
+          ls -la /opt || true              ####
+          ls -la /opt/iiab || true         ####
+          ls -la /opt/iiab/iiab || true    ####
+          sudo apt update                  ####
           sudo mkdir /opt/iiab
-          sudo mv $GITHUB_WORKSPACE/iiab /opt/iiab
+          sudo mv $GITHUB_WORKSPACE /opt/iiab
           cd /opt/iiab/iiab
-          ls -la                      ####
+          ls -la                           ####
           sudo mkdir /etc/iiab
           # touch /etc/iiab/local_vars.yml
-          sudo vars/local_vars_small.yml /etc/iiab/local_vars.yml
+          sudo cp vars/local_vars_small.yml /etc/iiab/local_vars.yml
           sudo ./iiab-install
       - name: Another command
         run: ls -l
