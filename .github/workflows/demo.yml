@@ -4,10 +4,10 @@ on: [push]
 jobs:
   test-install:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        #shell: bash
-        working-directory: /opt/iiab/iiab
+    # defaults:
+    #   run:
+    #     #shell: bash
+    #     working-directory: /opt/iiab/iiab
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       #- run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
@@ -41,9 +41,13 @@ jobs:
           sudo mkdir /etc/iiab
           # touch /etc/iiab/local_vars.yml
           sudo cp vars/local_vars_none.yml /etc/iiab/local_vars.yml
+        working-directory: /opt/iiab/iiab
       - name: Run scripts/ansible
         run: sudo scripts/ansible
+        working-directory: /opt/iiab/iiab
       - name: Run ./iiab-ansible
         run: sudo ./iiab-install
+        working-directory: /opt/iiab/iiab
       - name: cat /etc/iiab/iiab_state.yml
         run: cat /etc/iiab/iiab_state.yml
+        working-directory: /opt/iiab/iiab
