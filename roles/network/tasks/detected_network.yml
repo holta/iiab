@@ -245,6 +245,11 @@
   ignore_errors: True
   when: wifi_up_down and can_be_ap and has_wifi_gateway is defined
 
+- name: Set Wifi Region country to {{ REG_DOM.stdout }} for hostapd when present
+  set_fact:
+    host_country_code: "{{ REG_DOM.stdout }}"
+  when: REG_DOM.stdout is defined and REG_DOM.stdout | length > 0
+
 - name: In VM disable LAN - needs local_vars entry to activate
   set_fact:
     iiab_lan_iface: none
@@ -301,7 +306,7 @@
       value: "{{ iiab_wan_iface }}"
     - option: can_be_ap
       value: "{{ can_be_ap }}"
-    - option: host_country_code_applied
+    - option: host_country_code_found
       value: "{{ host_country_code }}"
 
 # well if there ever was a point to tell the user things are FUBAR this is it.

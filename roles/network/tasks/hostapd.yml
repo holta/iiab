@@ -9,11 +9,6 @@
     enabled: no
   when: not hostapd_enabled
 
-- name: Set Wifi Region country to {{ REG_DOM.stdout }} for hostapd when present
-  set_fact:
-    host_country_code: "{{ REG_DOM.stdout }}"
-  when: REG_DOM.stdout is defined and REG_DOM.stdout | length > 0
-
 - name: Detect current Wifi channel
   shell: iw {{ discovered_wireless_iface }} info | grep channel | cut -d' ' -f2
   register: current_client_channel
@@ -121,6 +116,8 @@
       value: "{{ host_wifi_mode }}"
     - option: wifi_up_down
       value: "{{ wifi_up_down }}"
+    - option: host_country_code_applied
+      value: "{{ host_country_code }}"
     - option: host_channel
       value: "{{ host_channel }}"
 
