@@ -55,11 +55,11 @@
 # 2022-07-11: Install of iiab-hotspot-on|off moved to network/tasks/main.yml
 # as required for Admin Console
 
-- name: Enable the Access Point 'hostapd' service
-  systemd:
-    name: hostapd
-    enabled: yes
-  when: hostapd_enabled and not wifi_up_down
+#- name: Enable the Access Point 'hostapd' service
+#  systemd:
+#    name: hostapd
+#    enabled: yes
+#  when: hostapd_enabled and not wifi_up_down
 
 - name: Disable ap0 related services
   systemd:
@@ -71,13 +71,12 @@
     - iiab-wifi-test.service
   when: not wifi_up_down
 
-- name: Enable the Access Point 'hostapd' and ap0 related services
+- name: Enable ap0 related services
   systemd:
     name: "{{ item }}"
     enabled: yes
     daemon_reload: yes
   with_items:
-    - hostapd.service
     - iiab-clone-wifi.service
     - iiab-wifi-test.service
   when: hostapd_enabled and wifi_up_down
