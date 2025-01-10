@@ -3,22 +3,11 @@
     hostapd_enabled: False
   when: (not wifi_up_down and discovered_wireless_iface == iiab_wan_iface) or discovered_wireless_iface == "none" or not can_be_ap
 
-- name: Disable the Access Point 'hostapd' service
+- name: Disable the Access Point 'hostapd' service hostapd_enabled False
   systemd:
     name: hostapd
     enabled: no
   when: not hostapd_enabled
-
-- name: Detect WiFi country code in use
-  shell: iw reg get | grep country | grep -v UNSET | awk '{print $2}' | sed "s|:||"
-  register: REG_DOM
-  ignore_errors: True
-  when: wifi_up_down and can_be_ap and has_wifi_gateway is defined
-
-- name: Set Wifi Region country code for hostapd when present
-  set_fact:
-    host_country_code: "{{ REG_DOM.stdout }}"
-  when: REG_DOM.stdout is defined and REG_DOM.stdout | length > 0
 
 - name: Detect current Wifi channel
   shell: iw {{ discovered_wireless_iface }} info | grep channel | cut -d' ' -f2
@@ -66,11 +55,11 @@
 # 2022-07-11: Install of iiab-hotspot-on|off moved to network/tasks/main.yml
 # as required for Admin Console
 
-- name: Enable the Access Point 'hostapd' service
-  systemd:
-    name: hostapd
-    enabled: yes
-  when: hostapd_enabled and not wifi_up_down
+#- name: Enable the Access Point 'hostapd' service
+#  systemd:
+#    name: hostapd
+#    enabled: yes
+#  when: hostapd_enabled and not wifi_up_down
 
 - name: Disable ap0 related services
   systemd:
@@ -82,13 +71,12 @@
     - iiab-wifi-test.service
   when: not wifi_up_down
 
-- name: Enable the Access Point 'hostapd' and ap0 related services
+- name: Enable ap0 related services
   systemd:
     name: "{{ item }}"
     enabled: yes
     daemon_reload: yes
   with_items:
-    - hostapd.service
     - iiab-clone-wifi.service
     - iiab-wifi-test.service
   when: hostapd_enabled and wifi_up_down
