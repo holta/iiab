@@ -47,6 +47,7 @@ jobs:
           cpu: ${{ matrix.cpu }}
           cpu_info: ${{ matrix.cpu_info }}
           copy_repository_path: /opt/iiab/iiab
+          use_systemd_nspawn: true    # chroot not enough for php-settings.yml (PR #3927)
           commands: |
               echo "🍏 This job's status is ${{ job.status }}."
               grep Model /proc/cpuinfo
