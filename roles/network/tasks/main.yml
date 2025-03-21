@@ -64,19 +64,30 @@
 
   #### Start network layout
 
+  #- name: Redhat networking
+  #  include_tasks: ifcfg_mods.yml
+  #  when: is_redhat
+
+  # 2025-03-21 #3961 #3965 WARNING: RasPiOS standard wifi firmware for RPi 4, 5,
+  # 500 [ /lib/firmware/cypress/cyfmac43455-sdio-standard.bin i.e. BCM4345/6
+  # wl0: Aug 29 2023 01:47:08 version 7.45.265 (28bca26 CY) FWID 01-b677b91b ]
+  # crashes OFTEN during restart of NetworkManager (or 'nmcli radio wifi off')
+  # as bare RasPiOS confirms: watch -n.1 "iw reg get; iw dev; echo; dmesg | grep Firmware:"
+  # MITIGATION: Deferring the setting of wifi country code (moved from just
+  # above, to just below) is NOT a complete solution, but just one of several (:
+  - name: NetworkManager in use
+    include_tasks: NM-debian.yml
+    when: network_manager_active
+
+  - pause:
+
   # 2024-12-18: As `rfkill unblock wifi` formerly in rpi_debian.yml wasn't enough, especially with NM (NetworkManager)
   - name: Run 'raspi-config nonint do_wifi_country {{ host_country_code }}' (using var host_country_code) to unblock WiFi, if RasPiOS
     command: raspi-config nonint do_wifi_country {{ host_country_code }}
     when: is_raspbian
     #ignore_errors: True
 
-  #- name: Redhat networking
-  #  include_tasks: ifcfg_mods.yml
-  #  when: is_redhat
-
-  - name: NetworkManager in use
-    include_tasks: NM-debian.yml
-    when: network_manager_active
+  - pause:
 
   - name: systemd-networkd in use
     include_tasks: sysd-netd-debian.yml
