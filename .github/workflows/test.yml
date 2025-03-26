@@ -29,7 +29,7 @@ jobs:
       - name: Check out repository code    # Clones repo onto github runner
         uses: actions/checkout@v4
         with:
-          fetch-depth: 10000    # Default is 1, but iiab-summary (below) needs git tag history
+          fetch-depth: 0    # Default is 1, but iiab-summary (below) needs git tag history
       - run: |
           uname -a    # uname -srm
           whoami      # Typically 'runner' instead of 'root'
