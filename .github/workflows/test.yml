@@ -28,8 +28,8 @@ jobs:
       #  run: echo "$GITHUB_CONTEXT"
       - name: Check out repository code    # Clones repo onto github runner
         uses: actions/checkout@v4
-      #  with:
-      #    fetch-depth: 0    # Default is 1, but iiab-summary (below) needs git tag history: https://github.com/actions/checkout/issues/217 https://github.com/actions/checkout/pull/1396 https://github.com/actions/checkout/issues/1467 https://github.com/actions/checkout/issues/1471 https://github.blog/open-source/git/get-up-to-speed-with-partial-clone-and-shallow-clone/
+        with:
+          fetch-depth: 10000    # Default is 1, but iiab-summary (below) needs git tag history: https://github.com/actions/checkout/issues/217 https://github.com/actions/checkout/pull/1396 https://github.com/actions/checkout/issues/1467 https://github.com/actions/checkout/issues/1471 https://github.blog/open-source/git/get-up-to-speed-with-partial-clone-and-shallow-clone/
       - run: |
           uname -a    # uname -srm
           whoami      # Typically 'runner' instead of 'root'
@@ -39,6 +39,7 @@ jobs:
           git branch -vv
           git log --oneline | wc
           git fetch --tags
+          git describe --tags --abbrev=0 --always
           git describe --tags --abbrev=0
           git describe --tags
           git describe
