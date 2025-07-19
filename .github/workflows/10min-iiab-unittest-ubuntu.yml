@@ -37,7 +37,7 @@ jobs:
           whoami      # Typically 'runner' instead of 'root'
           pwd         # /home/runner/work/iiab/iiab == $GITHUB_WORKSPACE == ${{ github.workspace }}
           umask
-          echo "$GITHUB_ACTION_REPOSITORY:" $GITHUB_ACTION_REPOSITORY
+          echo "GITHUB_ACTION_REPOSITORY:" $GITHUB_ACTION_REPOSITORY
           echo "GITHUB_REPOSITORY_OWNER:" $GITHUB_REPOSITORY_OWNER
           echo "GITHUB_TRIGGERING_ACTOR:" $GITHUB_TRIGGERING_ACTOR
           echo "GITHUB_ACTOR:" $GITHUB_ACTOR
