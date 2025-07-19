@@ -46,7 +46,8 @@ jobs:
           mv $GITHUB_WORKSPACE /opt/iiab
           mkdir $GITHUB_WORKSPACE    # OR SUBSEQUENT STEPS WILL FAIL ('working-directory: /opt/iiab/iiab' hacks NOT worth it!)
           sudo mkdir TEST1 /opt/TEST2
-          ls -ld $GITHUB_WORKSPACE /opt/iiab /opt/iiab/iiab TEST1 /opt/TEST2
+          ls -ld $GITHUB_WORKSPACE TEST1 /opt /opt/iiab /opt/TEST2 /opt/iiab/iiab
+          ls -la $GITHUB_WORKSPACE
       - name: Set up /etc/iiab/local_vars.yml
         run: |
           sudo mkdir /etc/iiab
