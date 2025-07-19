@@ -48,6 +48,7 @@ jobs:
           sudo mkdir TEST1 /opt/TEST2
           ls -ld $GITHUB_WORKSPACE TEST1 /opt /opt/iiab /opt/TEST2 /opt/iiab/iiab
           ls -la / $GITHUB_WORKSPACE
+          getfacl / /root $GITHUB_WORKSPACE /opt/iiab
       - name: Set up /etc/iiab/local_vars.yml
         run: |
           sudo mkdir /etc/iiab
