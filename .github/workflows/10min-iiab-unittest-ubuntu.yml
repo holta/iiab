@@ -37,13 +37,17 @@ jobs:
           whoami      # Typically 'runner' instead of 'root'
           pwd         # /home/runner/work/iiab/iiab == $GITHUB_WORKSPACE == ${{ github.workspace }}
           umask
+          echo "$GITHUB_ACTION_REPOSITORY:" $GITHUB_ACTION_REPOSITORY
           echo "GITHUB_REPOSITORY_OWNER:" $GITHUB_REPOSITORY_OWNER
-          echo "github.repository: " ${{ github.repository }}
-          echo "GIT_BRANCH_NAME: " $GIT_BRANCH_NAME
-          echo "GITHUB_REF: " $GITHUB_REF
-          echo "github.ref: " ${{ github.ref }}
-          echo "github.event.repository.name: " ${{ github.event.repository.name }}
-          echo "github.event: " ${{ github.event }}
+          echo "GITHUB_TRIGGERING_ACTOR:" $GITHUB_TRIGGERING_ACTOR
+          echo "GITHUB_ACTOR:" $GITHUB_ACTOR
+          echo "github.repository:" ${{ github.repository }}
+          echo "GIT_BRANCH_NAME:" $GIT_BRANCH_NAME
+          echo "GITHUB_REF:" $GITHUB_REF
+          echo "github.ref:" ${{ github.ref }}
+          echo "github.event.repository.name:" ${{ github.event.repository.name }}
+          echo "github.event.repository.owner:" ${{ github.event.repository.owner }}
+          echo "github.event:" ${{ github.event }}
           # tree /home/runner/work/_actions /home/runner/work/_temp /opt/hostedtoolcache (reusable deps; 88,000+ lines!)
           # ls -la /opt    # az, containerd, google, hostedtoolcache, microsoft, mssql-tools, pipx, pipx_bin, post-generation, runner, vsts
           # apt update && apt dist-upgrade -y && apt autoremove -y
