@@ -42,6 +42,7 @@ jobs:
           # apt update && apt dist-upgrade -y && apt autoremove -y
       - name: Set up /opt/iiab/iiab    # Some steps to get ready for the install
         run: |
+          getfacl $GITHUB_WORKSPACE
           mkdir /opt/iiab
           mv $GITHUB_WORKSPACE /opt/iiab
           mkdir $GITHUB_WORKSPACE    # OR SUBSEQUENT STEPS WILL FAIL ('working-directory: /opt/iiab/iiab' hacks NOT worth it!)
