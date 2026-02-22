@@ -86,3 +86,9 @@
 #     regexp: '^include*'
 #     line: 'include btcfg.txt'
 #   when: is_ubuntu
+
+- name: Disable userconfig.service for Raspberry Pi OS images headless / cloud-init
+  systemd:
+    name: userconfig.service
+    enabled: no
+  when: is_raspbian and rpi_image is defined
