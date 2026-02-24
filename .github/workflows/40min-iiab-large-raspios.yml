@@ -133,6 +133,8 @@ jobs:
           # forced reboot
           expect "login: " { send "root\r" }
 
+          expect -re {#\s?$} { send "rename cloud-init cloud-init-buildvm /var/log/cloud-init*\r" }
+
           expect -re {#\s?$} { send "/root/install_preset.sh\r" }
 
           expect -re {#\s?$} { send "usermod --lock --expiredate=1 root\r" }
