@@ -138,7 +138,6 @@ jobs:
           expect -re {#\s?$} { send "/root/install_preset.sh\r" }
 
           expect -re {#\s?$} { send "usermod --lock --expiredate=1 root\r" }
-          expect -re {#\s?$} { send "userdel -r pi\r" }
           # legacy whiptail TUI OOBE, replaced by cloud-init / rpi-imager
           expect -re {#\s?$} { send "systemctl disable userconfig.service\r" }
           # PR 4236 may deprecate the next line
