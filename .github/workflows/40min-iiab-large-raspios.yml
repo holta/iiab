@@ -33,7 +33,7 @@ jobs:
           #   working_image_size: 15000
           - edition: tiny
             config: vars/local_vars_tiny.yml
-            working_image_size: 5000
+            working_image_size: 7450
     steps:
       - uses: actions/checkout@v6
         with:
