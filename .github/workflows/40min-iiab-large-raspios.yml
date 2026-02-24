@@ -122,6 +122,8 @@ jobs:
           expect -re {#\s?$} { send "apt update\r" }
           expect -re {#\s?$} { send "mkdir -p /etc/initramfs-tools/conf.d && echo 'MODULES=most' > /etc/initramfs-tools/conf.d/nspawn.conf\r" }
           expect -re {#\s?$} { send "DEBIAN_FRONTEND=noninteractive apt upgrade -y\r" }
+          expect -re {#\s?$} { send "systemctl list-jobs --no-pager\r" }
+          expect -re {#\s?$} { send "systemctl status --no-pager cloud-init.target\r" }
 
           expect -re {#\s?$} { send "curl -fLo /usr/sbin/iiab https://raw.githubusercontent.com/iiab/iiab-factory/master/iiab\r" }
           expect -re {#\s?$} { send "chmod 0755 /usr/sbin/iiab\r" }
@@ -133,7 +135,7 @@ jobs:
           # forced reboot
           expect "login: " { send "root\r" }
 
-          expect -re {#\s?$} { send "rename cloud-init cloud-init-buildvm /var/log/cloud-init*\r" }
+          expect -re {#\s?$} { send "cat /var/log/cloud-init*\r" }
 
           expect -re {#\s?$} { send "/root/install_preset.sh\r" }
 
