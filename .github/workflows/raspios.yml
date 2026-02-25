@@ -4,13 +4,7 @@ concurrency:
   group: pr-${{ github.event.pull_request.number }}-raspios-image
   cancel-in-progress: true
 
-on:
-  workflow_dispatch:
-  workflow_run:
-    workflows: ['"40 min" IIAB "large" on Ubuntu 24.04 on x86-64']
-    types: [completed]
-    # branches:
-    #   - master
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build:
@@ -18,8 +12,8 @@ jobs:
     # environment:
     #   name: deploy
     strategy:
-      max-parallel: 1
       fail-fast: true
+      # max-parallel: 1
       matrix:
         include:
           # - edition: medical
@@ -28,9 +22,9 @@ jobs:
           #   # https://github.com/marketplace/actions/maximize-build-disk-space-only-remove-unwanted-software#how-it-works
           #   working_image_size: 75000
           #   preset_id: en-medical
-          # - edition: large
-          #   config: vars/local_vars_large.yml
-          #   working_image_size: 20000
+          - edition: large
+            config: vars/local_vars_large.yml
+            working_image_size: 20000
           # - edition: medium
           #   config: vars/local_vars_medium.yml
           #   working_image_size: 15000
