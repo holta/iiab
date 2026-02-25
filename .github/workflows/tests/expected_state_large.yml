@@ -25,3 +25,15 @@ matomo_installed: True
 captiveportal_installed: True
 calibreweb_installed: True
 code_installed: True
+cups_installed: True
+samba_installed: True
+gitea_installed: True
+jupyterhub_installed: True
+mediawiki_installed: True
+mosquitto_installed: True
+nodered_installed: True
+moodle_installed: True
+munin_installed: True
+vnstat_installed: True
+internetarchive_installed: True
+luanti_installed: True
