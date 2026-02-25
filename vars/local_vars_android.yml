@@ -104,3 +104,9 @@ usb_lib_enabled: False
 network_install: False
 network_enabled: False
 ##############################
+
+##############################
+# Disable captiveportal
+captiveportal_install: False
+captiveportal_enabled: False
+##############################
