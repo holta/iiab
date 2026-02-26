@@ -42,13 +42,16 @@ kiwix_enabled: True
 osm_vector_maps_install: False
 osm_vector_maps_enabled: False
 
-## Enable "New" Maps
+# "New" IIAB Maps, as of 2025 and 2026 -- INSTRUCTIONS: https://github.com/iiab/iiab/blob/master/roles/maps/README.md
 maps_install: True
 maps_enabled: True
-maps_vector_quality: ne
-maps_satellite_zoom: 7
-maps_terrain_zoom: none
-maps_region_downloader: True
+maps_vector_quality: "ne"                 # See `maps_dot_black_vector_tiles` in https://github.com/iiab/iiab/blob/master/roles/maps/defaults/main.yml for details and valid values.
+maps_satellite_zoom: 7                    # See `maps_dot_black_satellite_tiles` in https://github.com/iiab/iiab/blob/master/roles/maps/defaults/main.yml for details and valid values.
+maps_terrain_zoom: none                   # See `maps_dot_black_terrain_tiles` in https://github.com/iiab/iiab/blob/master/roles/maps/defaults/main.yml for details and valid values.
+maps_search_engine: static                  # See https://github.com/iiab/iiab/blob/master/roles/maps/tasks/install.yml for valid values.
+maps_search_nominatim_db: "basic"         # Full search database (work in progress, expected in Q2 2026!)
+maps_search_static_db: "pop-1k-cities"    # See `maps_` in https://github.com/iiab/iiab/blob/master/roles/maps/defaults/main.yml for details and valid values.
+maps_region_downloader: True             # Tool to select regions for full-quality download
 ##############################
 
 ##############################
