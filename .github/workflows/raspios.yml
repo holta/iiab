@@ -263,9 +263,9 @@ jobs:
                       "description": f"IIAB {os.environ.get('IIAB_BASE_VERSION', '')} {os.environ.get('EDITION', '')} edition",
                       "icon": "https://downloads.raspberrypi.com/raspios_arm64/Raspberry_Pi_OS_(64-bit).png",
                       "url": f"file:///home/YOUR_USERNAME/Downloads/{img_name}",
+                      "image_download_size": file_size,
                       "extract_size": file_size,
                       "extract_sha256": extract_sha256,
-                      "image_download_size": file_size,
                       "release_date": datetime.date.today().isoformat(),
                       "init_format": "cloudinit-rpi",
                       "devices": ["pi5-64bit", "pi4-64bit", "pi3-64bit"],
@@ -280,14 +280,22 @@ jobs:
 
           python3 gen_manifest.py
 
-      - name: Upload image as artifact
+      - name: Upload rpi-imager-manifest.json
+        if: ${{ matrix.edition == 'tiny' }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: rpi-imager-manifest.json
+          path: nspawn-loop/rpi-imager-manifest.json
+          if-no-files-found: error
+          retention-days: 3
+          compression-level: 9
+
+      - name: Upload image
         if: ${{ matrix.edition == 'tiny' }}
         uses: actions/upload-artifact@v6
         with:
           name: ${{ env.IMG_NAME }}
-          path: |
-            nspawn-loop/${{ env.IMG_NAME }}
-            nspawn-loop/rpi-imager-manifest.json
+          path: nspawn-loop/${{ env.IMG_NAME }}
           if-no-files-found: error
           retention-days: 3
           compression-level: 9
