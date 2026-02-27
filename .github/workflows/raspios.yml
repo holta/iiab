@@ -1,4 +1,4 @@
-name: 'Build RaspberryPi OS sdcard image'
+name: 'RPiOS SD card image'
 
 concurrency:
   group: pr-${{ github.event.pull_request.number }}-raspios-image
