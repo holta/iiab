@@ -14,5 +14,6 @@ awstats_enabled: False
 matomo_install: False
 matomo_enabled: False
 captiveportal_install: False
+captiveportal_enabled: False
 calibreweb_install: False
 calibreweb_enabled: False
