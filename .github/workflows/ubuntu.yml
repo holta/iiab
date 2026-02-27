@@ -1,4 +1,4 @@
-name: '"40 min" IIAB "large" on Ubuntu 24.04 on x86-64'
+name: '"30 min" IIAB "large" on Ubuntu 24.04 on x86-64'
 # run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
 
 concurrency:
