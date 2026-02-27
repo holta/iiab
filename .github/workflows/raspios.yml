@@ -1,8 +1,8 @@
 name: 'RPiOS SD card image'
 
-concurrency:
-  group: pr-${{ github.event.pull_request.number }}-raspios-image
-  cancel-in-progress: true
+# concurrency:
+#   group: pr-${{ github.event.pull_request.number }}-raspios-image
+#   cancel-in-progress: true
 
 on: [push, pull_request, workflow_dispatch]
 
@@ -12,7 +12,7 @@ jobs:
     # environment:
     #   name: deploy
     strategy:
-      fail-fast: true
+      # fail-fast: true
       # max-parallel: 1
       matrix:
         include:
@@ -157,7 +157,7 @@ jobs:
           source "$STATE_FILE"
 
           diff \
-            <(sort ../iiab/.github/workflows/tests/expected_state_${{ matrix.edition }}.yml) \
+            <(sort ../iiab/.github/workflows/tests/expected_state_${{ matrix.edition }}_image.yml) \
             <(sort "$MOUNT_DIR/etc/iiab/iiab_state.yml")
 
           EOF
