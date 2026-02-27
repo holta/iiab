@@ -147,6 +147,12 @@ jobs:
 
           EOF
 
+      - name: Validation
+        run: |
+          diff \
+            <(sort /opt/iiab/iiab/.github/workflows/tests/expected_state_${{ matrix.edition }}.yml) \
+            <(sudo sort "$MOUNT_DIR/etc/iiab/iiab_state.yml")
+
       - name: Shrink image
         if: ${{ matrix.edition == 'tiny' }}
         working-directory: nspawn-loop
