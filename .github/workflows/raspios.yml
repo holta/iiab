@@ -148,10 +148,19 @@ jobs:
           EOF
 
       - name: Validation
+        working-directory: nspawn-loop
         run: |
+          sudo -E bash << 'EOF'
+          set -euo pipefail
+
+          STATE_FILE=$(find . -maxdepth 1 -name "*.state" | head -n 1)
+          source "$STATE_FILE"
+
           diff \
-            <(sort /opt/iiab/iiab/.github/workflows/tests/expected_state_${{ matrix.edition }}.yml) \
-            <(sudo sort "$MOUNT_DIR/etc/iiab/iiab_state.yml")
+            <(sort ../iiab/.github/workflows/tests/expected_state_${{ matrix.edition }}.yml) \
+            <(sort "$MOUNT_DIR/etc/iiab/iiab_state.yml")
+
+          EOF
 
       - name: Shrink image
         if: ${{ matrix.edition == 'tiny' }}
