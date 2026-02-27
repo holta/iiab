@@ -66,8 +66,8 @@ This option is good for all devices. Fast and simple, but limited features.
 This is a list of all cities with population 1000 or higher (**~35MB**)
 
    ```
-   maps_search_engine: "static"
-   maps_search_static_db: "pop-1k-cities"
+   maps_search_engine: static
+   maps_search_static_db: pop-1k-cities
    ```
 
 ### High-power search
@@ -79,15 +79,15 @@ As of this writing it includes only administrative (i.e. political) regions and 
 1. If you want **~640 MB** "small" (only California, as of this writing) search:
 
    ```
-   maps_search_engine: "nominatim"
-   maps_search_nominatim_db: "basic"
+   maps_search_engine: nominatim
+   maps_search_nominatim_db: basic
    ```
 
 2. If you want **~67 GB** "full" (planet-wide) search:
 
    ```
-   maps_search_engine: "nominatim"
-   maps_search_nominatim_db: "full"
+   maps_search_engine: nominatim
+   maps_search_nominatim_db: full
    ```
 
 ## Full Quality Regions (experimental)
