@@ -1,8 +1,8 @@
-name: 'RPiOS SD card image'
+name: 'RPiOS image'
 
 concurrency:
-  group: pr-${{ github.event.pull_request.number }}-raspios-image
-  cancel-in-progress: true
+  group: ${{ github.ref }}-${{ github.workflow }}
+  # cancel-in-progress: true
 
 on: [push, pull_request, workflow_dispatch]
 
@@ -12,7 +12,7 @@ jobs:
     # environment:
     #   name: deploy
     strategy:
-      fail-fast: true
+      # fail-fast: true
       # max-parallel: 1
       matrix:
         include:
@@ -144,6 +144,21 @@ jobs:
           expect -re {#\s?$} { send "shutdown now\r" }
           expect eof
           EXPECT_EOF
+
+          EOF
+
+      - name: Validation
+        working-directory: nspawn-loop
+        run: |
+          sudo -E bash << 'EOF'
+          set -euo pipefail
+
+          STATE_FILE=$(find . -maxdepth 1 -name "*.state" | head -n 1)
+          source "$STATE_FILE"
+
+          diff \
+            <(sort ../iiab/.github/workflows/tests/expected_state_${{ matrix.edition }}_image.yml) \
+            <(sort "$MOUNT_DIR/etc/iiab/iiab_state.yml")
 
           EOF
 

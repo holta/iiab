@@ -2,8 +2,8 @@ name: '"30 min" IIAB "large" on Ubuntu 24.04 on x86-64'
 # run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
 
 concurrency:
-  group: pr-${{ github.event.pull_request.number }}-ubuntu
-  cancel-in-progress: true
+  group: ${{ github.ref }}-${{ github.workflow }}
+  # cancel-in-progress: true
 
 # https://michaelcurrin.github.io/dev-cheatsheets/cheatsheets/ci-cd/github-actions/triggers.html
 on: [push, pull_request, workflow_dispatch]
