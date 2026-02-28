@@ -39,6 +39,7 @@ luanti_installed: True
 calibreweb_installed: True
 code_installed: True
 munin_installed: True
+transmission_installed: True
 bluetooth_installed: True
 firmware_downloaded: True
 firmware_installed: True
