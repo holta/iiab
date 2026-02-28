@@ -1,8 +1,8 @@
 name: 'RPiOS image'
 
-concurrency:
-  group: ${{ github.ref }}-${{ github.workflow }}
-  # cancel-in-progress: true
+# cancel-in-progress: false
+# concurrency:
+#   group: ${{ github.ref }}-${{ github.workflow }}
 
 on: [push, pull_request, workflow_dispatch]
 
