@@ -3,6 +3,7 @@
 import json, os, random, re, requests, shutil, string, subprocess, sys, xmltodict, xml
 from pathlib import Path
 from collections import defaultdict
+from fqr import FQR
 
 sys.path.insert(1, "{{ maps_tools.tile_extract.working_dir }}/pmtiles-python/python/pmtiles")
 
@@ -42,7 +43,7 @@ def get_fqr_bbox(extract_name, fqr_dir):
     else:
         # We don't necessarily trust our own meta.json files because the
         # implementer may have been gotten it informally from a third party.
-        error = check_bbox_error(bbox)
+        error = FQR.check_bbox_error(bbox)
         if error:
             error = f"bbox error - {error}"
         return bbox, error
@@ -83,54 +84,6 @@ def validate_extract_name(extract_name):
     error = check_extract_name_error(extract_name)
     if error:
         raise ValueError(f"Invalid FQR name ({extract_name}): {error}")
-
-def check_bbox_error(bbox):
-    """
-    Check if `bbox` meets our standard format, including the basic structure.
-    It should be ready to save to meta.json or pass to the pmtiles tool.
-    """
-
-    if not isinstance(bbox, list):
-        return "bbox is not an array"
-    if len(bbox) != 4:
-        return "bbox has unexpected length"
-    for coord in bbox:
-        if not isinstance(coord, (int, float)):
-            return "coordinate is not a number"
-
-    min_lon, min_lat, max_lon, max_lat = bbox
-
-    if min_lon == max_lon:
-        return "longitudes are equal"
-    for lon in [min_lon, max_lon]:
-        if lon > 180:
-            return "longitude > 180"
-        if lon <= -180:
-            return "longitude <= -180"
-
-    if min_lat >= max_lat:
-        return "latitudes are equal or out of order"
-    for lat in [min_lat, max_lat]:
-        if lat > 90:
-            return "latitude > 90"
-        if lat < -90:
-            return "latitude < -90"
-
-def parse_bbox(extract_box_str):
-    """
-    This function parses and validates the bbox string that comes from the UI tool
-    """
-    try:
-        # `float` is important here even if just as a parsing check.
-        min_lon, min_lat, max_lon, max_lat = [float(n) for n in extract_box_str.split(",")]
-    except Exception as e:
-        raise ValueError(f"Extract box ({extract_box_str}) is malformed: {e}")
-
-    bbox = [min_lon, min_lat, max_lon, max_lat]
-    error = check_bbox_error(bbox)
-    if error:
-        raise ValueError(f"Extract box ({extract_box_str}) is invalid: {error}")
-    return bbox
 
 def validate_noninteractive(noninteractive):
     assert noninteractive in ("", "noninteractive"), f"`noninteractive` (optional) should only be set to \"noninteractive\". Got {noninteractive}"
@@ -469,41 +422,13 @@ def check_for_existing_name(extract_name):
         return False
     return True
 
-def _split_antimeridian_bbox(bbox):
-    return (
-        [bbox[0], bbox[1], 180, bbox[3]],
-        [-180, bbox[1], bbox[2], bbox[3]],
-    )
-
-def _has_overlap(bbox_1, bbox_2):
-    if bbox_1[0] > bbox_1[2]:
-        bbox_1_east, bbox_1_west = _split_antimeridian_bbox(bbox_1)
-        return (
-            _has_overlap(bbox_1_east, bbox_2) or
-            _has_overlap(bbox_1_west, bbox_2)
-        )
-    if bbox_2[0] > bbox_2[2]:
-        bbox_2_east, bbox_2_west = _split_antimeridian_bbox(bbox_2)
-        return (
-            _has_overlap(bbox_1, bbox_2_east) or
-            _has_overlap(bbox_1, bbox_2_west)
-        )
-
-    # Two normal squares
-    return (
-        bbox_1[0] < bbox_2[2] and
-        bbox_2[0] < bbox_1[2] and
-        bbox_1[1] < bbox_2[3] and
-        bbox_2[1] < bbox_1[3]
-    )
-
 def check_for_overlaps(new_bbox):
     """
     Assumes new_box and existing boxes are validated
     """
     for extract_name, fqr_dir in get_fqrs().items():
         existing_bbox, error = get_fqr_bbox(extract_name, fqr_dir)
-        if not error and _has_overlap(new_bbox, existing_bbox):
+        if not error and FQR._has_overlap(new_bbox, existing_bbox):
             return False
 
     return True
@@ -574,7 +499,7 @@ def main():
             noninteractive = sys.argv[4] if len(sys.argv) > 4 else ""
 
             validate_extract_name(extract_name)
-            extract_box = parse_bbox(extract_box_str)
+            extract_box = FQR.parse_bbox(extract_box_str)
             validate_noninteractive(noninteractive)
             noninteractive = bool(noninteractive)
 
