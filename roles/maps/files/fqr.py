@@ -1,80 +1,111 @@
 class FQR:
-    @classmethod
-    def check_bbox_error(cls, bbox):
+    """
+    A valid FQR that should be ready to save to meta.json or pass to the
+    pmtiles tool.
+    """
+
+    # Convert from
+
+    def __init__(self, bbox):
+        self.init_from_bbox(bbox)
+
+    def init_from_bbox(self, bbox):
         """
-        Check if `bbox` meets our standard format, including the basic structure.
-        It should be ready to save to meta.json or pass to the pmtiles tool.
+        Initialize values from `bbox` (i.e, a list of 4 numbers). Check if `bbox`
+        meets our standard format, including the basic structure.
         """
 
         if not isinstance(bbox, list):
-            return "bbox is not an array"
+            raise ValueError("bbox is not an array")
         if len(bbox) != 4:
-            return "bbox has unexpected length"
+            raise ValueError("bbox has unexpected length")
         for coord in bbox:
             if not isinstance(coord, (int, float)):
-                return "coordinate is not a number"
+                raise ValueError("coordinate is not a number")
 
-        min_lon, min_lat, max_lon, max_lat = bbox
+        self.min_lon, self.min_lat, self.max_lon, self.max_lat = bbox
 
-        if min_lon == max_lon:
-            return "longitudes are equal"
-        for lon in [min_lon, max_lon]:
+        if self.min_lon == self.max_lon:
+            raise ValueError("longitudes are equal")
+        for lon in [self.min_lon, self.max_lon]:
             if lon > 180:
-                return "longitude > 180"
+                raise ValueError("longitude > 180")
             if lon <= -180:
-                return "longitude <= -180"
+                raise ValueError("longitude <= -180")
 
-        if min_lat >= max_lat:
-            return "latitudes are equal or out of order"
-        for lat in [min_lat, max_lat]:
+        if self.min_lat >= self.max_lat:
+            raise ValueError("latitudes are equal or out of order")
+        for lat in [self.min_lat, self.max_lat]:
             if lat > 90:
-                return "latitude > 90"
+                raise ValueError("latitude > 90")
             if lat < -90:
-                return "latitude < -90"
+                raise ValueError("latitude < -90")
 
     @classmethod
-    def parse_bbox(cls, extract_box_str):
+    def from_bbox_str(cls, extract_box_str):
         """
-        This function parses and validates the bbox string that comes from the UI tool
+        This function parses and validates the bbox string that comes from the
+        UI tool (the same format that gets passed into pmtiles), and
+        initializes an FQR from it.
+
+        An example string in this format is `"0,10,50.5,60.5"`
         """
         try:
             # `float` is important here even if just as a parsing check.
             min_lon, min_lat, max_lon, max_lat = [float(n) for n in extract_box_str.split(",")]
         except Exception as e:
-            raise ValueError(f"Extract box ({extract_box_str}) is malformed: {e}")
+            raise ValueError(f"bbox ({extract_box_str}) is malformed: {e}")
 
-        bbox = [min_lon, min_lat, max_lon, max_lat]
-        error = cls.check_bbox_error(bbox)
-        if error:
-            raise ValueError(f"Extract box ({extract_box_str}) is invalid: {error}")
-        return bbox
+        try:
+            return cls([min_lon, min_lat, max_lon, max_lat])
+        except Exception as e:
+            raise ValueError(f"bbox ({[min_lon, min_lat, max_lon, max_lat]}) is invalid: {e}")
 
-    @classmethod
-    def _split_antimeridian_bbox(cls, bbox):
-        return (
-            [bbox[0], bbox[1], 180, bbox[3]],
-            [-180, bbox[1], bbox[2], bbox[3]],
-        )
 
-    @classmethod
-    def _has_overlap(cls, bbox_1, bbox_2):
-        if bbox_1[0] > bbox_1[2]:
-            bbox_1_east, bbox_1_west = cls._split_antimeridian_bbox(bbox_1)
+    # Convert to
+
+    def to_bbox(self):
+        return [self.min_lon, self.min_lat, self.max_lon, self.max_lat]
+
+    def to_bbox_str(self):
+        return ",".join(map(repr, self.to_bbox()))
+
+
+    # Check for overlaps
+
+    def _split_antimeridian_bbox(self):
+        """
+        Assumes `self` crosses the antimeridian
+        """
+        # Remember: the western edge of the -180/180 logical map is the eastern
+        # portion of the region that crosses that 180/-180 edge.
+        # NOTE - This -179.99999999 is an awkward situation and creates various problems.
+        # This will be fixed in an upcoming commit.
+        east = FQR([-179.99999999, self.min_lat, self.max_lon, self.max_lat])
+        west = FQR([self.min_lon, self.min_lat, 180, self.max_lat])
+        return (east, west)
+
+    def overlaps(self, other):
+        # self crosses antimeridian, so let's split it in two and recursively try this test on both
+        if self.min_lon > self.max_lon:
+            self_east, self_west = self._split_antimeridian_bbox()
             return (
-                cls._has_overlap(bbox_1_east, bbox_2) or
-                cls._has_overlap(bbox_1_west, bbox_2)
-            )
-        if bbox_2[0] > bbox_2[2]:
-            bbox_2_east, bbox_2_west = cls._split_antimeridian_bbox(bbox_2)
-            return (
-                cls._has_overlap(bbox_1, bbox_2_east) or
-                cls._has_overlap(bbox_1, bbox_2_west)
+                self_east.overlaps(other) or
+                self_west.overlaps(other)
             )
 
-        # Two normal squares
+        # other crosses antimeridian, so let's split it in two and recursively try this test on both
+        if other.min_lon > other.max_lon:
+            other_east, other_west = other._split_antimeridian_bbox()
+            return (
+                other_east.overlaps(self) or
+                other_west.overlaps(self)
+            )
+
+        # self and other do not cross the antimeridian so we can test them simply
         return (
-            bbox_1[0] < bbox_2[2] and
-            bbox_2[0] < bbox_1[2] and
-            bbox_1[1] < bbox_2[3] and
-            bbox_2[1] < bbox_1[3]
+            self.min_lon < other.max_lon and
+            other.min_lon < self.max_lon and
+            self.min_lat < other.max_lat and
+            other.min_lat < self.max_lat
         )
