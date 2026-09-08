@@ -1,13 +1,77 @@
 import unittest
 from fqr import FQR
 
-class TestOverlap(unittest.TestCase):
-    def test_simple_fqr(self):
+class TestConvertFrom(unittest.TestCase):
+    MIN_ALLOWED_LON = -179.99999999999997
+
+    def test_const(self):
+        """
+        Confirm that MIN_ALLOWED_LON is the lowest value above -180
+        """
+        # It seems that MIN_ALLOWED_LON is the lowest value that Python's normal number
+        # type considers to be greater than -180. Experimentally, any number
+        # between -179.99999999999997 and -180 seems to round to one or the other.
+        self.assertEqual(-179.99999999999997, self.MIN_ALLOWED_LON)
+        self.assertEqual(-179.99999999999998, self.MIN_ALLOWED_LON)
+        self.assertEqual(-179.99999999999999, -180)
+
+    def test_init_fqr(self):
         """
         Test that there's no problem creating a basic FQR
         """
-        FQR([0, 10, 50, 60])
+        fqr = FQR([0, 10, 50, 60])
+        self.assertEqual(fqr.min_lon, 0)
+        self.assertEqual(fqr.min_lat, 10)
+        self.assertEqual(fqr.max_lon, 50)
+        self.assertEqual(fqr.max_lat, 60)
 
+    def test_init_fqr_errors(self):
+        def try_bad_bbox(bbox, exc, msg):
+            with self.assertRaises(exc) as cm:
+                FQR(bbox)
+            self.assertEqual(str(cm.exception), msg)
+
+        try_bad_bbox("10,20,30,40", TypeError, "bbox is not an array")
+        try_bad_bbox([], ValueError, "bbox has unexpected length")
+        try_bad_bbox([10, "20", 30, 40], TypeError, "coordinate is not a number")
+
+        # lon either order no problem
+        FQR([10, 20, 30, 40])
+        FQR([10, 20, 5, 40])
+        try_bad_bbox([10, 20, 10, 40], ValueError, "longitudes are equal")
+
+        FQR([10, 20, 180, 40]) # lon 180 no problem
+        try_bad_bbox([10, 20, 180.01, 40], ValueError, "longitude > 180")
+        FQR([10, 20, self.MIN_ALLOWED_LON, 40]) # lon almost -180 no problem
+        try_bad_bbox([10, 20, -180, 40], ValueError, f"longitude <= -180")
+
+        try_bad_bbox([10, 20, 30, 20], ValueError, "latitudes are equal or out of order")
+        try_bad_bbox([10, 20, 30, 19], ValueError, "latitudes are equal or out of order")
+        FQR([10, 20, 30, 90]) # lat 90 no problem
+        try_bad_bbox([10, 20, 30, 90.001], ValueError, "latitude > 90")
+        FQR([10, -90, 30, 10]) # lat -90 no problem
+        try_bad_bbox([10, -90.001, 30, 10], ValueError, "latitude < -90")
+
+    def test_from_bbox_str(self):
+        """
+        Test that there's no problem creating a basic FQR
+        """
+        fqr = FQR.from_bbox_str("0,10,50,60")
+        self.assertEqual(fqr.min_lon, 0)
+        self.assertEqual(fqr.min_lat, 10)
+        self.assertEqual(fqr.max_lon, 50)
+        self.assertEqual(fqr.max_lat, 60)
+
+    def test_from_bbox_str_errors(self):
+        def try_bad_bbox_str(bbox_str, exc, msg):
+            with self.assertRaises(exc) as cm:
+                FQR.from_bbox_str(bbox_str)
+            self.assertEqual(str(cm.exception), msg)
+
+        try_bad_bbox_str("10,o,30,40", ValueError, "bbox (10,o,30,40) is malformed: could not convert string to float: 'o'")
+        try_bad_bbox_str("10,20,30,100", ValueError, "bbox ([10.0, 20.0, 30.0, 100.0]) is invalid: latitude > 90")
+
+class TestConvertTo(unittest.TestCase):
     def test_to_bbox(self):
         bbox = [0, 10, 50, 60]
         self.assertEqual(FQR(bbox).to_bbox(), bbox)
@@ -16,6 +80,7 @@ class TestOverlap(unittest.TestCase):
         bbox = [0, 10, 50.5, 60.5]
         self.assertEqual(FQR(bbox).to_bbox_str(), "0,10,50.5,60.5")
 
+class TestOverlap(unittest.TestCase):
     def test_split_antimeridian_bbox(self):
         fqr = FQR([170, 80, -170, 90])
         east, west = fqr._split_antimeridian_bbox()

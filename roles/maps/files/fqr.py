@@ -7,21 +7,21 @@ class FQR:
     # Convert from
 
     def __init__(self, bbox):
-        self.init_from_bbox(bbox)
+        self._init_from_bbox(bbox)
 
-    def init_from_bbox(self, bbox):
+    def _init_from_bbox(self, bbox):
         """
         Initialize values from `bbox` (i.e, a list of 4 numbers). Check if `bbox`
         meets our standard format, including the basic structure.
         """
 
         if not isinstance(bbox, list):
-            raise ValueError("bbox is not an array")
+            raise TypeError("bbox is not an array")
         if len(bbox) != 4:
             raise ValueError("bbox has unexpected length")
         for coord in bbox:
             if not isinstance(coord, (int, float)):
-                raise ValueError("coordinate is not a number")
+                raise TypeError("coordinate is not a number")
 
         self.min_lon, self.min_lat, self.max_lon, self.max_lat = bbox
 
@@ -31,7 +31,7 @@ class FQR:
             if lon > 180:
                 raise ValueError("longitude > 180")
             if lon <= -180:
-                raise ValueError("longitude <= -180")
+                raise ValueError(f"longitude <= -180")
 
         if self.min_lat >= self.max_lat:
             raise ValueError("latitudes are equal or out of order")
@@ -42,7 +42,7 @@ class FQR:
                 raise ValueError("latitude < -90")
 
     @classmethod
-    def from_bbox_str(cls, extract_box_str):
+    def from_bbox_str(cls, bbox_str):
         """
         This function parses and validates the bbox string that comes from the
         UI tool (the same format that gets passed into pmtiles), and
@@ -51,10 +51,9 @@ class FQR:
         An example string in this format is `"0,10,50.5,60.5"`
         """
         try:
-            # `float` is important here even if just as a parsing check.
-            min_lon, min_lat, max_lon, max_lat = [float(n) for n in extract_box_str.split(",")]
+            min_lon, min_lat, max_lon, max_lat = [float(n) for n in bbox_str.split(",")]
         except Exception as e:
-            raise ValueError(f"bbox ({extract_box_str}) is malformed: {e}")
+            raise ValueError(f"bbox ({bbox_str}) is malformed: {e}")
 
         try:
             return cls([min_lon, min_lat, max_lon, max_lat])
