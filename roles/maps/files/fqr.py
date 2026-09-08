@@ -72,39 +72,82 @@ class FQR:
 
     # Check for overlaps
 
-    def _split_antimeridian_bbox(self):
-        """
-        Assumes `self` crosses the antimeridian
-        """
-        # Remember: the western edge of the -180/180 logical map is the eastern
-        # portion of the region that crosses that 180/-180 edge.
-        # NOTE - This -179.99999999 is an awkward situation and creates various problems.
-        # This will be fixed in an upcoming commit.
-        east = FQR([-179.99999999, self.min_lat, self.max_lon, self.max_lat])
-        west = FQR([self.min_lon, self.min_lat, 180, self.max_lat])
-        return (east, west)
+    def crosses_antimeridian(self):
+        return self.min_lon > self.max_lon
 
     def overlaps(self, other):
-        # self crosses antimeridian, so let's split it in two and recursively try this test on both
-        if self.min_lon > self.max_lon:
-            self_east, self_west = self._split_antimeridian_bbox()
+        # We can rule out latitude non-overlap right away so we don't have
+        # to check it again while dealing with the complicated longitude logic:
+        if self.min_lat >= other.max_lat or other.min_lat >= self.max_lat:
+            return False
+
+        # If both regions cross the antimeridian, it's guaranteed that there's
+        # some overlap:
+        if self.crosses_antimeridian() and other.crosses_antimeridian():
+            return True
+
+        # If neither region crosses the antimeridian, our overlap logic is pretty simple. The regions
+        #   do not overlap IFF `self` is fully east or fully west of the other (sharing a border does
+        #   not count as not overlapping). In other words:
+        #
+        # self.min_lon >= other.max_lon
+        # self:                [      ]
+        # other:     [      ]
+        #
+        # other.min_lon >= self.max_lon
+        # self:      [      ]
+        # other:               [      ]
+        #
+        # So our condition is:
+        #
+        # not ((self.min_lon >= other.max_lon) or (other.min_lon >= self.max_lon))
+        #
+        # Which simplifies to:
+        #
+        # (self.min_lon < other.max_lon) and (other.min_lon < self.max_lon)
+        if not self.crosses_antimeridian() and not other.crosses_antimeridian():
             return (
-                self_east.overlaps(other) or
-                self_west.overlaps(other)
+                self.min_lon < other.max_lon and
+                other.min_lon < self.max_lon
             )
 
-        # other crosses antimeridian, so let's split it in two and recursively try this test on both
-        if other.min_lon > other.max_lon:
-            other_east, other_west = other._split_antimeridian_bbox()
-            return (
-                other_east.overlaps(self) or
-                other_west.overlaps(self)
-            )
-
-        # self and other do not cross the antimeridian so we can test them simply
+        # At this point we know that exactly one of self` or `other` crosses the antimeridian.
+        #
+        # If `self` crosses the antimeridian and `other` does not, it means that:
+        # * `self` exists in two parts:
+        #   * between `self.min_lon` and 180
+        #   * between -180 and `self.max_lon`
+        # * `other` exists in one part:
+        #   * between `other.min_lon` and `other.max_lon`
+        #
+        # The first type of overlap is if the eastern end of
+        #   `other` (i.e. `other.max_lon`) is east of `self.min_lon`:
+        #
+        # self:             [     |    ]
+        # other:     [        ]   |
+        #
+        # The second type of overlap is if the western end of
+        #    `other` (i.e. `other.min_lon`) is west of `self.max_lon`:
+        #
+        # self:             [     |    ]
+        # other:                  | [        ]
+        #
+        # So we end up with this condition:
+        #
+        # (self.min_lon < other.max_lon) or (other.min_lon < self.max_lon)
+        #
+        # Okay. So what if `other` crosses the antimeridian and `self` does not?
+        #   Just swap the variables:
+        #
+        # (other.min_lon < self.max_lon) or (self.min_lon < other.max_lon)
+        #
+        # What if we change the order of the two parts of the `or`?
+        #
+        # (self.min_lon < other.max_lon) or (other.min_lon < self.max_lon)
+        #
+        # Either by coincidence or some basic principle of modular arithmetic
+        # this ends up being the same test! So this is the only test we need here.
         return (
-            self.min_lon < other.max_lon and
-            other.min_lon < self.max_lon and
-            self.min_lat < other.max_lat and
-            other.min_lat < self.max_lat
+            self.min_lon < other.max_lon or
+            other.min_lon < self.max_lon
         )

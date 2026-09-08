@@ -1,9 +1,10 @@
 import unittest
 from fqr import FQR
 
-class TestConvertFrom(unittest.TestCase):
+class TestFQR(unittest.TestCase):
     MIN_ALLOWED_LON = -179.99999999999997
 
+class TestConvertFrom(TestFQR):
     def test_const(self):
         """
         Confirm that MIN_ALLOWED_LON is the lowest value above -180
@@ -71,7 +72,7 @@ class TestConvertFrom(unittest.TestCase):
         try_bad_bbox_str("10,o,30,40", ValueError, "bbox (10,o,30,40) is malformed: could not convert string to float: 'o'")
         try_bad_bbox_str("10,20,30,100", ValueError, "bbox ([10.0, 20.0, 30.0, 100.0]) is invalid: latitude > 90")
 
-class TestConvertTo(unittest.TestCase):
+class TestConvertTo(TestFQR):
     def test_to_bbox(self):
         bbox = [0, 10, 50, 60]
         self.assertEqual(FQR(bbox).to_bbox(), bbox)
@@ -80,14 +81,13 @@ class TestConvertTo(unittest.TestCase):
         bbox = [0, 10, 50.5, 60.5]
         self.assertEqual(FQR(bbox).to_bbox_str(), "0,10,50.5,60.5")
 
-class TestOverlap(unittest.TestCase):
-    def test_split_antimeridian_bbox(self):
-        fqr = FQR([170, 80, -170, 90])
-        east, west = fqr._split_antimeridian_bbox()
-        self.assertEqual(east.to_bbox(), [-179.99999999, 80, -170, 90])
-        self.assertEqual(west.to_bbox(), [170, 80, 180, 90])
+class TestOverlap(TestFQR):
 
-    def test_overlap_neither_antimeridian_cross(self):
+    def test_crosses_antimeridian(self):
+        self.assertTrue(FQR([170, 80, -170, 90]).crosses_antimeridian())
+        self.assertFalse(FQR([-170, 80, 170, 90]).crosses_antimeridian())
+
+    def test_neither_antimeridian_cross(self):
         """
         Test overlaps and non-overlaps between two regions, neither of which cross the antimeridian
         """
@@ -101,7 +101,7 @@ class TestOverlap(unittest.TestCase):
         self.assertFalse(FQR([0, 0, 20, 20]).overlaps(FQR([20, 0, 40, 20])), "expected: no overlap - borders on lon")
         self.assertFalse(FQR([0, 0, 20, 20]).overlaps(FQR([0, 20, 20, 40])), "expected: no overlap - borders on lat")
 
-    def test_overlap_one_antimeridian_cross(self):
+    def test_one_antimeridian_cross(self):
         """
         Test overlaps and non-overlaps between two regions, one of which crosses the antimeridian
         """
@@ -112,7 +112,7 @@ class TestOverlap(unittest.TestCase):
         self.assertFalse(FQR([160, 0, -160, 20]).overlaps(FQR([-150, 0, -140, 20])), "expected: no overlap - east of antimeridian")
         self.assertFalse(FQR([160, 0, -160, 20]).overlaps(FQR([140, 0, 150, 20])), "expected: no overlap - west of antimeridian")
 
-    def test_overlap_both_antimeridian_cross(self):
+    def test_both_antimeridian_cross(self):
         """
         Test overlaps and non-overlaps between two antimeridian-crossing regions
         """
@@ -121,6 +121,25 @@ class TestOverlap(unittest.TestCase):
         self.assertTrue(FQR([160, 0, -160, 20]).overlaps(FQR([150, 0, -170, 20])), "expected: overlap - first region starts and ends more west than second region does")
         self.assertTrue(FQR([160, 0, -160, 20]).overlaps(FQR([170, 0, -170, 20])), "expected: overlap - first region fully contains second region")
         self.assertTrue(FQR([170, 0, -170, 20]).overlaps(FQR([160, 0, -160, 20])), "expected: overlap - second region fully contains first region")
+
+    def test_antimeridian_sliver(self):
+        """
+        Test overlaps and non-overlaps related to the extreme longitudes, self.MIN_ALLOWED_LON and 180
+        """
+
+        self.assertFalse(FQR([160, 0, 180, 20]).overlaps(FQR([self.MIN_ALLOWED_LON, 0, -150, 20])),
+            f"expected: no overlap - the regions have a gap between 180 and {self.MIN_ALLOWED_LON}")
+        self.assertFalse(FQR([160, 0, 180, 20]).overlaps(FQR([180, 0, -150, 20])),
+            "expected: no overlap - the regions share a border on 180")
+        self.assertFalse(FQR([160, 0, self.MIN_ALLOWED_LON, 20]).overlaps(FQR([self.MIN_ALLOWED_LON, 0, -150, 20])),
+            f"expected: no overlap - the regions share a border on {self.MIN_ALLOWED_LON}")
+
+        self.assertTrue(FQR([160, 0, self.MIN_ALLOWED_LON, 20]).overlaps(FQR([180, 0, -150, 20])),
+            f"expected: overlap - the regions overlap, barely between 180 and {self.MIN_ALLOWED_LON}")
+        self.assertTrue(FQR([180, 0, self.MIN_ALLOWED_LON, 20]).overlaps(FQR([180, 0, -150, 20])),
+            f"expected: overlap - the first region is just the sliver between 180 and {self.MIN_ALLOWED_LON}, and is fully contained in the second, which extends to the east")
+        self.assertTrue(FQR([180, 0, self.MIN_ALLOWED_LON, 20]).overlaps(FQR([170, 0, self.MIN_ALLOWED_LON, 20])),
+            f"expected: overlap - the first region is just the sliver between 180 and {self.MIN_ALLOWED_LON}, and is fully contained in the second, which extends to the west")
 
 if __name__ == "__main__":
     unittest.main()
