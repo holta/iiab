@@ -204,10 +204,10 @@
         repo: deb http://ports.ubuntu.com/ubuntu-ports focal-security main
       when: is_ubuntu
 
-    - name: Install OLD source/repo "deb http://security.debian.org/debian-security bullseye-security main" at /etc/apt/sources.list.d/security_debian_org_debian_security.list if Debian
+    - name: Install Debian security snapshot for libssl1.1 if Debian
       apt_repository:
-        repo: deb http://security.debian.org/debian-security bullseye-security main
-        #repo: deb https://deb.debian.org/debian-security bullseye-security main    # New way, likely equivalent
+        repo: "deb [check-valid-until=no] https://snapshot.debian.org/archive/debian-security/{{ mongodb_debian_security_snapshot }}/ bullseye-security main"
+        filename: iiab-bullseye-security-snapshot
       when: is_debian
 
     - name: Force install libssl1.1
@@ -215,10 +215,10 @@
         name: libssl1.1
         state: present
 
-    - name: Remove OLD source/repo "deb http://security.debian.org/debian-security bullseye-security main" at /etc/apt/sources.list.d/security_debian_org_debian_security.list if Debian
+    - name: Remove Debian security snapshot for libssl1.1 if Debian
       apt_repository:
-        repo: deb http://security.debian.org/debian-security bullseye-security main
-        #repo: deb https://deb.debian.org/debian-security bullseye-security main    # New way, likely equivalent
+        repo: "deb [check-valid-until=no] https://snapshot.debian.org/archive/debian-security/{{ mongodb_debian_security_snapshot }}/ bullseye-security main"
+        filename: iiab-bullseye-security-snapshot
         state: absent
       when: is_debian
 
