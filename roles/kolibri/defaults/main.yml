@@ -70,15 +70,16 @@ kolibri_patch_path: "/opt/iiab/iiab/roles/proot_services/files/kolibri-00-preven
 
 # Custom repo data by OS (PR #4300)
 kolibri_repo_dict:
-  True:    # when is_debian
+  True:    # when newer OS
     repo: https://learningequality.github.io/kolibri-installer-debian/
     keyring: /etc/apt/keyrings/learningequality-kolibri.asc
     suite: stable
-  False:    # when not is_debian
+  False:    # when older OS
     repo: http://ppa.launchpad.net/learningequality/kolibri/ubuntu/
     keyring: /etc/apt/keyrings/learningequality-kolibri.gpg
     suite: noble
 
-kolibri_repo_uris: "{{ kolibri_repo_dict[is_debian].repo }}"
-kolibri_keyring_file: "{{ kolibri_repo_dict[is_debian].keyring }}"
-kolibri_suite: "{{ kolibri_repo_dict[is_debian].suite }}"
+# SEE ALSO kolibri/tasks/install.yml LINE ~82
+kolibri_repo_uris: "{{ kolibri_repo_dict[is_debian or is_ubuntu and os_ver is version('ubuntu-2610', '>=')].repo }}"
+kolibri_keyring_file: "{{ kolibri_repo_dict[is_debian or is_ubuntu and os_ver is version('ubuntu-2610', '>=')].keyring }}"
+kolibri_suite: "{{ kolibri_repo_dict[is_debian or is_ubuntu and os_ver is version('ubuntu-2610', '>=')].suite }}"
