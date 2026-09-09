@@ -7,9 +7,10 @@ class TestFQR(unittest.TestCase):
 class TestConvertFrom(TestFQR):
     def test_const(self):
         """
-        Confirm that MIN_ALLOWED_LON is the lowest value above -180
+        Confirm, for the sake of other tests, that `MIN_ALLOWED_LON`
+        (179.99999999999997) is the lowest value above -180.
         """
-        # It seems that MIN_ALLOWED_LON is the lowest value that Python's normal number
+        # It seems that 179.99999999999997 is the lowest value that Python's normal number
         # type considers to be greater than -180. Experimentally, any number
         # between -179.99999999999997 and -180 seems to round to one or the other.
         self.assertEqual(-179.99999999999997, self.MIN_ALLOWED_LON)
@@ -55,7 +56,7 @@ class TestConvertFrom(TestFQR):
 
     def test_from_bbox_str(self):
         """
-        Test that there's no problem creating a basic FQR
+        Test that there's no problem creating a basic FQR from string
         """
         fqr = FQR.from_bbox_str("0,10,50,60")
         self.assertEqual(fqr.min_lon, 0)

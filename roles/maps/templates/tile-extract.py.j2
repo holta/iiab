@@ -163,13 +163,13 @@ def get_new_extract_paths(extract_name):
         "terrain": get_paths(catalog["terrain"][TERRAIN_MAX_ZOOM]),
     }
 
-def get_all_fqrs():
+def get_all_fqr_dirs():
     """
     List FQRs based on directory names.
 
     Directories with .fqr extension that are otherwise invalid are skipped with a warning.
     """
-    fqrs = {}
+    fqr_dirs = {}
     for fqr_dir in HOSTING_DIR.glob("*.fqr"):
         extract_name = fqr_dir.name.rsplit('.')[0]
         error = check_extract_name_error(extract_name)
@@ -178,8 +178,8 @@ def get_all_fqrs():
         elif not fqr_dir.is_dir():
             print(f"Warning: not a directory - {fqr_dir}")
         else:
-            fqrs[extract_name] = fqr_dir
-    return fqrs
+            fqr_dirs[extract_name] = fqr_dir
+    return fqr_dirs
 
 def get_region_files_for_fqr(fqr_dir):
     """
@@ -247,12 +247,12 @@ def delete_extract(extract_name):
     Also confirm with them if there are unexpected files in the directory.
     """
 
-    fqrs = get_all_fqrs()
-    if extract_name not in fqrs:
+    fqr_dirs = get_all_fqr_dirs()
+    if extract_name not in fqr_dirs:
         print (f"Found no Full Quality Regions with the name '{extract_name}'")
         return
 
-    fqr_dir = fqrs[extract_name]
+    fqr_dir = fqr_dirs[extract_name]
     fqr_files = list(get_region_files_for_fqr(fqr_dir))
 
     fqr_region_extract_types = [region_extract_type for (_, region_extract_type, _) in fqr_files]
@@ -426,7 +426,7 @@ def check_for_overlaps(new_fqr):
     """
     Assumes new_box and existing boxes are validated
     """
-    for extract_name, fqr_dir in get_all_fqrs().items():
+    for extract_name, fqr_dir in get_all_fqr_dirs().items():
         # NOTE - If we fail to load an FQR, we don't check it for overlaps. This may of course get
         # a little tricky if it somehow gets repaired later. But we'll have to deal with it the same
         # way we deal with implementers who informally add FQRs that overlap (which is TBD).
@@ -449,7 +449,7 @@ def update_extracts_json():
         lambda: dict(dates=defaultdict(dict)),
     )
 
-    for extract_name, fqr_dir in get_all_fqrs().items():
+    for extract_name, fqr_dir in get_all_fqr_dirs().items():
         fqr, error = get_fqr(extract_name, fqr_dir)
         if error:
             print (f"Warning: not displaying '{extract_name}' on the map - {error}")

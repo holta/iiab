@@ -111,7 +111,7 @@ class FQR:
                 other.min_lon < self.max_lon
             )
 
-        # At this point we know that exactly one of self` or `other` crosses the antimeridian.
+        # At this point we know that exactly one of `self` or `other` crosses the antimeridian.
         #
         # If `self` crosses the antimeridian and `other` does not, it means that:
         # * `self` exists in two parts:
@@ -137,7 +137,7 @@ class FQR:
         # (self.min_lon < other.max_lon) or (other.min_lon < self.max_lon)
         #
         # Okay. So what if `other` crosses the antimeridian and `self` does not?
-        #   Just swap the variables:
+        #   Just swap the fqrs:
         #
         # (other.min_lon < self.max_lon) or (self.min_lon < other.max_lon)
         #
@@ -145,7 +145,7 @@ class FQR:
         #
         # (self.min_lon < other.max_lon) or (other.min_lon < self.max_lon)
         #
-        # Either by coincidence or some basic principle of modular arithmetic
+        # Either by coincidence, or perhaps some basic principle of modular arithmetic,
         # this ends up being the same test! So this is the only test we need here.
         return (
             self.min_lon < other.max_lon or
