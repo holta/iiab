@@ -56,6 +56,17 @@
     dest: "{{ maps_tools.tile_extract.working_dir }}/tile-extract.py"
     mode: "0755"
 
+# CI can run it after installation
+# TODO - just run the test every deploy? right now it's super fast.
+- name: Install fqr.py and fqr_test.py
+  copy:
+    src: "{{ item }}"
+    dest: "{{ maps_tools.tile_extract.working_dir }}/{{ item }}"
+    mode: "0644"
+  with_items:
+    - fqr.py
+    - fqr_test.py
+
 - name: Install maps-update.py
   template:
     src: "maps-update.py.j2"

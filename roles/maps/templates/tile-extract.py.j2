@@ -3,6 +3,7 @@
 import json, os, random, re, requests, shutil, string, subprocess, sys, xmltodict, xml
 from pathlib import Path
 from collections import defaultdict
+from fqr import FQR
 
 sys.path.insert(1, "{{ maps_tools.tile_extract.working_dir }}/pmtiles-python/python/pmtiles")
 
@@ -26,7 +27,7 @@ def delete_command(extract_name):
         f"sudo {{ maps_tools.tile_extract.working_dir }}/tile-extract.py delete {extract_name}"
     )
 
-def get_fqr_bbox(extract_name, fqr_dir):
+def get_fqr(extract_name, fqr_dir):
     # If we want to inspect the actual files (perhaps to inform users if their
     # pmtiles files don't match their fqr's bbox), see the version of
     # `get_bounds` at commit 351399c7fdc534d6ea6ce7f64dae9757d695ceaf
@@ -42,10 +43,10 @@ def get_fqr_bbox(extract_name, fqr_dir):
     else:
         # We don't necessarily trust our own meta.json files because the
         # implementer may have been gotten it informally from a third party.
-        error = check_bbox_error(bbox)
-        if error:
-            error = f"bbox error - {error}"
-        return bbox, error
+        try:
+            return FQR(bbox), None
+        except Exception as e:
+            return None, f"meta.json bbox error: {e}"
 
 # `REGION_TYPES_FOR_DATE` maps the region types seen in the pmtiles file names
 # to the keys in the "dates" substructure in the extracts file:
@@ -83,54 +84,6 @@ def validate_extract_name(extract_name):
     error = check_extract_name_error(extract_name)
     if error:
         raise ValueError(f"Invalid FQR name ({extract_name}): {error}")
-
-def check_bbox_error(bbox):
-    """
-    Check if `bbox` meets our standard format, including the basic structure.
-    It should be ready to save to meta.json or pass to the pmtiles tool.
-    """
-
-    if not isinstance(bbox, list):
-        return "bbox is not an array"
-    if len(bbox) != 4:
-        return "bbox has unexpected length"
-    for coord in bbox:
-        if not isinstance(coord, (int, float)):
-            return "coordinate is not a number"
-
-    min_lon, min_lat, max_lon, max_lat = bbox
-
-    if min_lon == max_lon:
-        return "longitudes are equal"
-    for lon in [min_lon, max_lon]:
-        if lon > 180:
-            return "longitude > 180"
-        if lon <= -180:
-            return "longitude <= -180"
-
-    if min_lat >= max_lat:
-        return "latitudes are equal or out of order"
-    for lat in [min_lat, max_lat]:
-        if lat > 90:
-            return "latitude > 90"
-        if lat < -90:
-            return "latitude < -90"
-
-def parse_bbox(extract_box_str):
-    """
-    This function parses and validates the bbox string that comes from the UI tool
-    """
-    try:
-        # `float` is important here even if just as a parsing check.
-        min_lon, min_lat, max_lon, max_lat = [float(n) for n in extract_box_str.split(",")]
-    except Exception as e:
-        raise ValueError(f"Extract box ({extract_box_str}) is malformed: {e}")
-
-    bbox = [min_lon, min_lat, max_lon, max_lat]
-    error = check_bbox_error(bbox)
-    if error:
-        raise ValueError(f"Extract box ({extract_box_str}) is invalid: {error}")
-    return bbox
 
 def validate_noninteractive(noninteractive):
     assert noninteractive in ("", "noninteractive"), f"`noninteractive` (optional) should only be set to \"noninteractive\". Got {noninteractive}"
@@ -210,13 +163,13 @@ def get_new_extract_paths(extract_name):
         "terrain": get_paths(catalog["terrain"][TERRAIN_MAX_ZOOM]),
     }
 
-def get_fqrs():
+def get_all_fqr_dirs():
     """
     List FQRs based on directory names.
 
     Directories with .fqr extension that are otherwise invalid are skipped with a warning.
     """
-    fqrs = {}
+    fqr_dirs = {}
     for fqr_dir in HOSTING_DIR.glob("*.fqr"):
         extract_name = fqr_dir.name.rsplit('.')[0]
         error = check_extract_name_error(extract_name)
@@ -225,8 +178,8 @@ def get_fqrs():
         elif not fqr_dir.is_dir():
             print(f"Warning: not a directory - {fqr_dir}")
         else:
-            fqrs[extract_name] = fqr_dir
-    return fqrs
+            fqr_dirs[extract_name] = fqr_dir
+    return fqr_dirs
 
 def get_region_files_for_fqr(fqr_dir):
     """
@@ -294,12 +247,12 @@ def delete_extract(extract_name):
     Also confirm with them if there are unexpected files in the directory.
     """
 
-    fqrs = get_fqrs()
-    if extract_name not in fqrs:
+    fqr_dirs = get_all_fqr_dirs()
+    if extract_name not in fqr_dirs:
         print (f"Found no Full Quality Regions with the name '{extract_name}'")
         return
 
-    fqr_dir = fqrs[extract_name]
+    fqr_dir = fqr_dirs[extract_name]
     fqr_files = list(get_region_files_for_fqr(fqr_dir))
 
     fqr_region_extract_types = [region_extract_type for (_, region_extract_type, _) in fqr_files]
@@ -342,12 +295,12 @@ def delete_extract(extract_name):
 
     print(f"Full Quality Region data for {extract_name} has been deleted.")
 
-def create_extract(extract_box, extract_name, extract_paths):
+def create_extract(new_fqr, extract_name, extract_paths):
     # Extract them all successfully before moving them.
     # Assumes it doesn't exist yet
     for paths in extract_paths.values():
         result = subprocess.run(
-            [PMTILES, "extract", paths["source"], paths["tmp"], "--bbox=" + ",".join(map(repr, extract_box))],
+            [PMTILES, "extract", paths["source"], paths["tmp"], "--bbox=" + new_fqr.to_bbox_str()],
         )
         if result.returncode != 0:
             raise Exception(f"Region download failed. Double-check your Internet connection. (error code {result.returncode})")
@@ -365,7 +318,7 @@ def create_extract(extract_box, extract_name, extract_paths):
     # try again. (or eventually, they can "update" it which will grab any
     # missing pmtiles files).
     with get_meta_file_path(fqr_dir).open("w") as f:
-        json.dump({"bbox": extract_box}, f)
+        json.dump({"bbox": new_fqr.to_bbox()}, f)
     for paths in extract_paths.values():
         shutil.move(paths["tmp"], paths["extract"])
 
@@ -378,12 +331,12 @@ UNIT_MULT = {
 }
 
 
-def get_estimates(extract_box, extract_paths):
+def get_estimates(new_fqr, extract_paths):
     extract_sizes = {}
 
     for paths in extract_paths.values():
         result = subprocess.run(
-            [PMTILES, "extract", paths["source"], paths["tmp"], "--bbox=" + ",".join(map(repr, extract_box)), "--dry-run"],
+            [PMTILES, "extract", paths["source"], paths["tmp"], "--bbox=" + new_fqr.to_bbox_str(), "--dry-run"],
             capture_output=True,
             text=True,
         )
@@ -422,10 +375,10 @@ def get_estimates(extract_box, extract_paths):
     return extract_sizes
 
 
-def approve_download_size(extract_box, extract_paths):
+def approve_download_size(new_fqr, extract_paths):
     print("Determining download size...")
 
-    extract_sizes = get_estimates(extract_box, extract_paths)
+    extract_sizes = get_estimates(new_fqr, extract_paths)
     if extract_sizes is None:
         return yes_no("Cannot get file size estimate due to unexpected output from pmtiles. Download anyway?")
 
@@ -469,41 +422,16 @@ def check_for_existing_name(extract_name):
         return False
     return True
 
-def _split_antimeridian_bbox(bbox):
-    return (
-        [bbox[0], bbox[1], 180, bbox[3]],
-        [-180, bbox[1], bbox[2], bbox[3]],
-    )
-
-def _has_overlap(bbox_1, bbox_2):
-    if bbox_1[0] > bbox_1[2]:
-        bbox_1_east, bbox_1_west = _split_antimeridian_bbox(bbox_1)
-        return (
-            _has_overlap(bbox_1_east, bbox_2) or
-            _has_overlap(bbox_1_west, bbox_2)
-        )
-    if bbox_2[0] > bbox_2[2]:
-        bbox_2_east, bbox_2_west = _split_antimeridian_bbox(bbox_2)
-        return (
-            _has_overlap(bbox_1, bbox_2_east) or
-            _has_overlap(bbox_1, bbox_2_west)
-        )
-
-    # Two normal squares
-    return (
-        bbox_1[0] < bbox_2[2] and
-        bbox_2[0] < bbox_1[2] and
-        bbox_1[1] < bbox_2[3] and
-        bbox_2[1] < bbox_1[3]
-    )
-
-def check_for_overlaps(new_bbox):
+def check_for_overlaps(new_fqr):
     """
     Assumes new_box and existing boxes are validated
     """
-    for extract_name, fqr_dir in get_fqrs().items():
-        existing_bbox, error = get_fqr_bbox(extract_name, fqr_dir)
-        if not error and _has_overlap(new_bbox, existing_bbox):
+    for extract_name, fqr_dir in get_all_fqr_dirs().items():
+        # NOTE - If we fail to load an FQR, we don't check it for overlaps. This may of course get
+        # a little tricky if it somehow gets repaired later. But we'll have to deal with it the same
+        # way we deal with implementers who informally add FQRs that overlap (which is TBD).
+        existing_fqr, error = get_fqr(extract_name, fqr_dir)
+        if not error and existing_fqr.overlaps(new_fqr):
             return False
 
     return True
@@ -521,8 +449,8 @@ def update_extracts_json():
         lambda: dict(dates=defaultdict(dict)),
     )
 
-    for extract_name, fqr_dir in get_fqrs().items():
-        bbox, error = get_fqr_bbox(extract_name, fqr_dir)
+    for extract_name, fqr_dir in get_all_fqr_dirs().items():
+        fqr, error = get_fqr(extract_name, fqr_dir)
         if error:
             print (f"Warning: not displaying '{extract_name}' on the map - {error}")
             print ("You may need to delete this region and download it again. The command to delete it is:")
@@ -530,7 +458,7 @@ def update_extracts_json():
             print(delete_command(extract_name))
             print() # Extra line because we may list multiple incomplete FQRs here
             continue # Something went really haywire. Skip this pmtiles file.
-        region_extracts[extract_name]["bbox"] = bbox
+        region_extracts[extract_name]["bbox"] = fqr.to_bbox()
 
         for _, region_extract_type, date in get_region_files_for_fqr(fqr_dir):
             region_extracts[extract_name]["dates"][REGION_TYPES_FOR_DATE[region_extract_type]] = date
@@ -574,12 +502,16 @@ def main():
             noninteractive = sys.argv[4] if len(sys.argv) > 4 else ""
 
             validate_extract_name(extract_name)
-            extract_box = parse_bbox(extract_box_str)
+            try:
+                new_fqr = FQR.from_bbox_str(extract_box_str)
+            except Exception as e:
+                sys.exit(f"Error parsing extract box: {e}")
+
             validate_noninteractive(noninteractive)
             noninteractive = bool(noninteractive)
 
             # Check arguments against existing data
-            if not check_for_overlaps(extract_box):
+            if not check_for_overlaps(new_fqr):
                 if noninteractive:
                     sys.exit(0)
                 else:
@@ -594,11 +526,11 @@ def main():
             extract_paths = get_new_extract_paths(extract_name)
 
             # Get a download estimate and give users a chance to back out
-            if not noninteractive and not approve_download_size(extract_box, extract_paths):
+            if not noninteractive and not approve_download_size(new_fqr, extract_paths):
                 sys.exit(1)
 
             # Do the extracts
-            create_extract(extract_box, extract_name, extract_paths)
+            create_extract(new_fqr, extract_name, extract_paths)
             update_extracts_json() # Add the newly added extract
 
         case unknown:
