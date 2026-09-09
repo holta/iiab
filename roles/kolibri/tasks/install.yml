@@ -71,7 +71,10 @@
 # https://github.com/learningequality/kolibri-installer-debian/pull/117
 
 - name: "Download Kolibri's apt key to {{ kolibri_keyring_file }}"
-  shell: "curl -fsSL https://learningequality.github.io/kolibri-installer-debian/pubkey.asc > {{ kolibri_keyring_file }}"
+  get_curl:
+    url: https://learningequality.github.io/kolibri-installer-debian/pubkey.asc
+    dest: "{{ kolibri_keyring_file }}"
+    timeout: "{{ download_timeout }}"
 
 # 2024-06-25: Strongly consider PPA "kolibri-proposed" in future...
 # https://github.com/learningequality/kolibri/issues/11892
