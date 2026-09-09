@@ -70,16 +70,8 @@
 # PPL WHO DON'T KNOW with the wrong default username, instead of 'kolibri' :/
 # https://github.com/learningequality/kolibri-installer-debian/pull/117
 
-# 2022-08-31: keyring /etc/apt/trusted.gpg DEPRECATED as detailed on #3343
-- name: "Download Kolibri's apt key to {{ kolibri_keyring_file }} -- on older OS's"
-  shell: |
-    gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys DC5BAA93F9E4AE4F0411F97C74F88ADB3194DD81
-    gpg --yes --output "{{ kolibri_keyring_file }}" --export DC5BAA93F9E4AE4F0411F97C74F88ADB3194DD81
-  when: not is_debian and not (is_ubuntu and os_ver is version('ubuntu-2610', '>='))
-
-- name: "Download Kolibri's apt key to {{ kolibri_keyring_file }} -- on newer OS's"
+- name: "Download Kolibri's apt key to {{ kolibri_keyring_file }}"
   shell: "curl -fsSL https://learningequality.github.io/kolibri-installer-debian/pubkey.asc > {{ kolibri_keyring_file }}"
-  when: is_debian or is_ubuntu and os_ver is version('ubuntu-2610', '>=')    # SEE ALSO kolibri/defaults/main.yml LINES ~83 to ~85
 
 # 2024-06-25: Strongly consider PPA "kolibri-proposed" in future...
 # https://github.com/learningequality/kolibri/issues/11892
