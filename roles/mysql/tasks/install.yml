@@ -68,7 +68,7 @@
     dest: /etc/tmpfiles.d/mariadbd-compat.conf
     content: |
       d /run/mariadbd 0755 mysql root -
-      L /run/mariadbd/mysqld.sock - - - - /run/mysqld/mysqld.sock
+      L? /run/mariadbd/mysqld.sock - - - - /run/mysqld/mysqld.sock
   when: not is_proot
 
 - name: Also create symlink right now (not just on each reboot)
