@@ -67,7 +67,7 @@
   copy:
     dest: /etc/tmpfiles.d/mariadbd-compat.conf
     content: |
-      d /run/mariadbd 0755 mysql root -
+      d? /run/mariadbd 0755 mysql root -
       L? /run/mariadbd/mysqld.sock - - - - /run/mysqld/mysqld.sock
   when: not is_proot
 
